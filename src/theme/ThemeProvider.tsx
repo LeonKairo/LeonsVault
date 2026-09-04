@@ -11,6 +11,7 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 const STORAGE_KEY = 'vault-theme';
+const THEME_TRANSITIONING = 'theme-transitioning';
 
 function getInitialTheme(): Theme {
   if (typeof window === 'undefined') return 'dark';
@@ -19,18 +20,54 @@ function getInitialTheme(): Theme {
   return 'dark';
 }
 
+function prefersReducedMotion(): boolean {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function applyTheme(theme: Theme) {
+  const root = document.documentElement;
+  root.classList.remove('light', 'dark');
+  root.classList.add(theme);
+  window.localStorage.setItem(STORAGE_KEY, theme);
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
-    window.localStorage.setItem(STORAGE_KEY, theme);
+    applyTheme(theme);
   }, [theme]);
 
-  const setTheme = (t: Theme) => setThemeState(t);
-  const toggleTheme = () => setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  const transitionTheme = (next: Theme) => {
+    if (next === theme) return;
+
+    const supportsVT = typeof document !== 'undefined' && 'startViewTransition' in document;
+
+    if (supportsVT && !prefersReducedMotion()) {
+      const vt = (document as Document & { startViewTransition: (cb: () => void) => { finished: Promise<void> } });
+      vt.startViewTransition(() => {
+        setThemeState(next);
+      });
+    } else if (!prefersReducedMotion()) {
+      // Coordinated fallback: a single overlay crossfade so the visual change
+      // feels unified instead of per-element color interpolation.
+      const root = document.documentElement;
+      root.classList.add(THEME_TRANSITIONING);
+      // Force a snapshot of the old state, then swap.
+      requestAnimationFrame(() => {
+        setThemeState(next);
+      });
+      // Remove the transitioning class after the fallback duration.
+      window.setTimeout(() => {
+        root.classList.remove(THEME_TRANSITIONING);
+      }, 420);
+    } else {
+      setThemeState(next);
+    }
+  };
+
+  const setTheme = (t: Theme) => transitionTheme(t);
+  const toggleTheme = () => transitionTheme(theme === 'dark' ? 'light' : 'dark');
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
