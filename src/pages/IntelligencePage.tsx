@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Brain, Sparkles, TrendingUp, AlertTriangle, Lightbulb, Eye } from 'lucide-react';
 import { Card, SectionLabel } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { insights, truthInsights } from '@/data/mockData';
+import { trades } from '@/data/mockData';
+import { generateInsights, generateTruthInsights } from '@/lib/intelligence';
 import { cn } from '@/lib/utils';
 
 type Phase = 'analyzing' | 'results' | 'truth';
@@ -10,6 +11,10 @@ type Phase = 'analyzing' | 'results' | 'truth';
 export function IntelligencePage() {
   const [phase, setPhase] = useState<Phase>('analyzing');
   const [showTruth, setShowTruth] = useState(false);
+
+  const insights = useMemo(() => generateInsights(trades), []);
+  const truthInsights = useMemo(() => generateTruthInsights(trades), []);
+  const tradeCount = trades.length;
 
   if (phase === 'analyzing') {
     return (
@@ -26,7 +31,7 @@ export function IntelligencePage() {
           <p className="text-sm text-text-tertiary">Analyzing patterns, edges, and behaviors...</p>
 
           <div className="mt-8 space-y-2 max-w-xs mx-auto">
-            {['Scanning 16 trades', 'Identifying session patterns', 'Detecting behavioral trends'].map((text, i) => (
+            {[`Scanning ${tradeCount} trades`, 'Identifying session patterns', 'Detecting behavioral trends'].map((text, i) => (
               <div
                 key={text}
                 className="flex items-center justify-center gap-2 text-xs text-text-tertiary animate-fade-up"
