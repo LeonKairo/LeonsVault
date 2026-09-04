@@ -4,10 +4,10 @@ import { EquityChart } from '@/components/charts/EquityChart';
 import { equityCurve, formatCurrency } from '@/data/mockData';
 
 export function EquityCurveSection() {
-  const currentEquity = equityCurve[equityCurve.length - 1].equity;
-  const startEquity = equityCurve[0].equity;
+  const currentEquity = equityCurve.length > 0 ? equityCurve[equityCurve.length - 1].equity : 0;
+  const startEquity = equityCurve.length > 0 ? equityCurve[0].equity : 0;
   const change = currentEquity - startEquity;
-  const changePct = (change / startEquity) * 100;
+  const changePct = startEquity !== 0 ? (change / startEquity) * 100 : 0;
   const isPositive = change >= 0;
 
   return (

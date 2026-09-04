@@ -600,7 +600,7 @@ function CalendarDayCell({
   const winRate = dayAgg && dayAgg.trades > 0 ? (dayAgg.wins / dayAgg.trades) * 100 : 0;
 
   const cellClass = cn(
-    'relative w-full aspect-square min-w-0 box-border rounded-lg border flex flex-col items-center justify-center p-1.5 overflow-hidden transition-all duration-micro cursor-pointer hover:scale-[1.04] focus-ring',
+    'relative w-full aspect-square min-w-0 box-border rounded-lg border flex flex-col items-center justify-center p-1.5 overflow-hidden transition-[border-color,background-color,box-shadow] duration-micro cursor-pointer focus-ring',
     !hasTrades && 'bg-transparent border-border',
     hoverGlowClass,
     selected && 'ring-2 ring-accent ring-offset-1 ring-offset-bg z-10',
